@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build  . -t NEANIAS-Space/VisIVOServer
+docker build  . -t neanias-space/visivoserver
