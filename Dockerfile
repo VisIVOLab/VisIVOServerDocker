@@ -44,3 +44,4 @@ RUN make -j8;make install
 
 ENV PATH="/opt/VisIVOServer-2.2/bin/:${PATH}"
 
+WORKDIR /root/
