@@ -29,7 +29,6 @@ RUN cd /tmp/Mesa-7.5.2; make -j8 linux-x86-64; make install
 RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/mesa-x86_64.conf
 RUN ldconfig
 
-
 #get and build VTK 5.10.1
 RUN git clone https://gitlab.kitware.com/vtk/vtk.git; 
 RUN cd vtk; git checkout v5.10.1
@@ -59,3 +58,7 @@ ENV PATH="/opt/VisIVOServer-2.2/bin/:${PATH}"
 WORKDIR /root/
 
 ADD testfile /opt/testfile
+
+RUN rm -rf /tmp/*
+RUN rm -rf /opt/vtk
+RUN rm -rf /opt/VisIVOServer
