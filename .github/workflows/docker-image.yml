@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the VisIVOServer Docker image
-      run: docker build . --file Dockerfile --tag VisIVOServer:$(date +%s)
+      run: docker build . --file Dockerfile --tag visivoserver:$(date +%s)
