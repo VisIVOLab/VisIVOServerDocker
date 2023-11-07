@@ -11,6 +11,7 @@ RUN yum check-update ; \
     yum -y install rh-python38 rh-python38-python-devel \
                    llvm-toolset-7.0 llvm-toolset-7.0-clang \
                    rh-git227 && \
+    yum install -y cfitsio-devel hdf5-devel libcurl-devel make boost-devel && \
     yum clean all
 
 # Python 3.8 package installation along with basic packages
@@ -149,18 +150,14 @@ ENV TBB_ROOT="/opt/TBB/oneapi-tbb-${TBB_VER}"
 ADD build_vtk.sh /tmp/
 RUN /tmp/build_vtk.sh
 
-RUN yum install -y cfitsio-devel hdf5-devel libcurl-devel make boost-devel
-
 RUN curl -O https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.gz && \
 tar -xzf openmpi-*.tar.gz && cd openmpi-* &&	\
 ./configure CC=clang CXX=clang++ && \
 CC=clang-14 make -j$(nproc) && \
 make install
 
-
 ADD build_visivo.sh /tmp/
 RUN /tmp/build_visivo.sh
-
 
 RUN echo /usr/local/lib64/ >> /etc/ld.so.conf.d/vtk.conf && \
 echo /opt/TBB/oneapi-tbb-2021.5.0/lib/intel64/gcc4.8/ >> /etc/ld.so.conf.d/libtbb.conf && \ 
