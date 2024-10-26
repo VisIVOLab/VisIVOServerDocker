@@ -18,16 +18,18 @@ set -o errexit
 #make install
 
 
-VISIVO_BRANCH="llvm-compatibility"
-VISIVO_COMMIT="0559282"
-VISIVO_URL="https://github.com/VisIVOLab/VisIVOServer.git"
+VISIVO_BRANCH="main"
+VISIVO_COMMIT="ea594b1"
+VISIVO_URL="https://github.com/VisIVOLab/VisIVOServer"
 
+wget http://rpmfind.net/linux/centos-stream/10-stream/BaseOS/x86_64/os/Packages/libtirpc-1.3.5-0.el10.x86_64.rpm
 git clone -b $VISIVO_BRANCH --single-branch $VISIVO_URL
 cd VisIVOServer
 git checkout $VISIVO_COMMIT
 
 mkdir build && cd build
-cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc ../src 2>&1 | tee $PWD0/cmake.log
+cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc -DBUILD_API_LIGHT=OFF ../src 2>&1 | tee $PWD0/cmake.log
+export CPATH=/usr/include/tirpc:$CPATH
 make -j$(nproc) && \
 make install
 

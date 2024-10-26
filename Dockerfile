@@ -1,27 +1,23 @@
-FROM centos:7
+FROM almalinux:9
 LABEL maintainer="Håkon Strandenes <h.strandenes@km-turbulenz.no>"
 LABEL description="LLVM+OSMesa compiled from sources"
 
-# Note: "yum check-update" return code 100 if there are packages to be updated,
-# hence the ";" instead of "&&"
-RUN yum check-update ; \
-    yum -y install epel-release && \
-    yum -y update && \
-    yum -y install wget unzip centos-release-scl patchelf zlib-devel bison flex binutils-devel patch perl-Data-Dumper && \
-    yum -y install rh-python38 rh-python38-python-devel \
-                   llvm-toolset-7.0 llvm-toolset-7.0-clang \
-                   rh-git227 && \
-    yum install -y cfitsio-devel hdf5-devel libcurl-devel make boost-devel && \
-    yum clean all
+RUN dnf -y install epel-release && \
+    dnf -y update && \
+    dnf -y install python3 python3-devel \
+                   llvm clang git unzip \
+                   wget cfitsio-devel autoconf automake libtool hdf5-devel libcurl-devel bzip2 make boost-devel zlib-devel bison flex binutils-devel patch perl-Data-Dumper perl-FindBin && \
+    dnf -y --enablerepo=crb install libtirpc-devel && \
+    dnf clean all
 
 # Python 3.8 package installation along with basic packages
-RUN mkdir -p /opt/python38
 COPY requirements.txt /opt/python38/
-RUN source scl_source enable rh-python38 && \
-    cd /opt/python38 && \
-    python -m venv . && \
-    source bin/activate && \
-    pip install -r requirements.txt
+RUN mkdir -p /opt/python38 && \
+    python3 -m venv /opt/python38 && \
+    source /opt/python38/bin/activate && \
+    pip install --upgrade pip && \
+    pip install -r /opt/python38/requirements.txt
+
 
 # Fetch and install updated CMake in /usr/local
 ENV CMAKE_VER="3.23.3"
@@ -54,8 +50,6 @@ RUN set -o pipefail && \
 
 # Compile LLVM + Clang compilation using LLVM-7 from Centos SCL
 RUN set -o pipefail && \
-    source scl_source enable llvm-toolset-7.0 && \
-    source scl_source enable rh-python38 && \
     cd /opt/llvm-build/llvm-project-${LLVM_VER}.src && \
     mkdir build && \
     cd build && \
@@ -82,7 +76,6 @@ ENV CXXFLAGS="-march=${CPU_ARCH}"
 # LLVM stage 2 compilation - building LLVM and libLLVM with x86-64-v2
 # architecture flag
 RUN set -o pipefail && \
-    source scl_source enable rh-python38 && \
     cd /opt/llvm-build/llvm-project-${LLVM_VER}.src/ && \
     mkdir build-stage2 && \
     cd build-stage2 && \
@@ -112,7 +105,6 @@ RUN mkdir -p /opt/mesa && \
 
 # Compile OSMesa
 RUN set -o pipefail && \
-    source scl_source enable rh-python38 && \
     source /opt/python38/bin/activate && \
     cd /opt/mesa/mesa-${MESA_VER} && \
     mkdir build && \
@@ -146,15 +138,15 @@ RUN mkdir /opt/TBB && \
 ENV TBB_ROOT="/opt/TBB/oneapi-tbb-${TBB_VER}"
 
 #VTK
-
 ADD build_vtk.sh /tmp/
 RUN /tmp/build_vtk.sh
 
 RUN curl -O https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.2.tar.gz && \
-tar -xzf openmpi-*.tar.gz && cd openmpi-* &&	\
-./configure CC=clang CXX=clang++ && \
-CC=clang-14 make -j$(nproc) && \
-make install
+    tar -xzf openmpi-3.1.2.tar.gz && \
+    cd openmpi-3.1.2 && \
+    ./configure CC=clang CXX=clang++ && \
+    make -j$(nproc) && \
+    make install
 
 ADD build_visivo.sh /tmp/
 RUN /tmp/build_visivo.sh
