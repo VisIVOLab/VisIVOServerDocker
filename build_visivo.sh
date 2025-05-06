@@ -19,7 +19,7 @@ set -o errexit
 
 
 VISIVO_BRANCH="main"
-VISIVO_COMMIT="ea594b1"
+VISIVO_COMMIT="f199658"
 VISIVO_URL="https://github.com/VisIVOLab/VisIVOServer"
 
 wget http://rpmfind.net/linux/centos-stream/10-stream/BaseOS/x86_64/os/Packages/libtirpc-1.3.5-0.el10.x86_64.rpm
