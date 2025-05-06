@@ -6,12 +6,12 @@ VisIVO Server consists of three core components: VisIVO Importer, VisiVO Filter,
 
 To build the container execute the script 
 
-```
-./build_docker_container.sh
-```
 
-To run the container use:
+**Credits**
+
+This container is adapted from:
 
 ```
-./run_docker_container.sh
+https://github.com/kmturbulenz/llvm-osmesa-image
+https://github.com/kmturbulenz/vtk-osmesa-build
 ```
