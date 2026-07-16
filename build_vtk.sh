@@ -1,37 +1,31 @@
 #!/bin/bash
+set -e
+set -o pipefail
+set -o verbose
 
 echo "Compiling VTK"
 
-set -o verbose
-set -o errexit
-
 PWD0=$(pwd)
 
-# VTK compilation
 VTK_BRANCH="master"
 VTK_COMMIT="285daeedd58eb890cb90d6e907d822eea3d2d092"
 VTK_URL="https://gitlab.kitware.com/vtk/vtk.git"
 
-# Clone the VTK repository
-git clone -b $VTK_BRANCH --single-branch $VTK_URL
+git clone -b "$VTK_BRANCH" --single-branch "$VTK_URL"
 cd vtk
-git checkout $VTK_COMMIT
+git checkout "$VTK_COMMIT"
 
-# Extract VTK version
-VTK_MAJOR_VERSION=$(grep -oP '(?<=set\(VTK_MAJOR_VERSION )([0-9]+)' CMake/vtkVersion.cmake)
-VTK_MINOR_VERSION=$(grep -oP '(?<=set\(VTK_MINOR_VERSION )([0-9]+)' CMake/vtkVersion.cmake)
-VTK_BUILD_VERSION=$(grep -oP '(?<=set\(VTK_BUILD_VERSION )([0-9]+)' CMake/vtkVersion.cmake)
-VTK_VER="${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}"
+mkdir -p build
+cd build
 
-# Create a build directory and configure the build
-mkdir -p build && cd build  # Ensure proper path creation
 export LDFLAGS="-fuse-ld=lld"
 
 cmake -GNinja \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DVTK_BUILD_TESTING=OFF \
     -DCMAKE_BUILD_TYPE=Release \
-    -DVTK_OPENGL_HAS_OSMESA=True \
-    -DVTK_USE_X=False \
+    -DVTK_OPENGL_HAS_OSMESA=ON \
+    -DVTK_USE_X=OFF \
     -DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN=ON \
     -DVTK_SMP_IMPLEMENTATION_TYPE=TBB \
     -DVTK_SMP_ENABLE_SEQUENTIAL=ON \
@@ -40,12 +34,14 @@ cmake -GNinja \
     -DVTK_SMP_ENABLE_OPENMP=ON \
     -DVTK_INSTALL_SDK=ON \
     -DVTK_WRAP_PYTHON=ON \
-    -DPYTHON_EXECUTABLE=$(which python3) \
-    -DPYTHON_INCLUDE_DIR=/usr/include/python3.9 \
-    -DPYTHON_LIBRARY=/usr/lib64/libpython3.9.so \
-    ../ 2>&1 | tee $PWD0/cmake.log
+    -DTBB_DIR=/opt/TBB/oneapi-tbb-2021.5.0/lib/cmake/tbb \
+    -DPython3_EXECUTABLE=/opt/python38/bin/python3 \
+    -DPython3_INCLUDE_DIR=/usr/include/python3.9 \
+    -DPython3_LIBRARY=/usr/lib64/libpython3.9.so \
+    .. 2>&1 | tee "$PWD0/cmake.log"
 
-# Build and install VTK
-ninja 2>&1 | tee $PWD0/ninja.log
-ninja install 2>&1 | tee $PWD0/ninja_install.log
+ninja 2>&1 | tee "$PWD0/ninja.log"
+ninja install 2>&1 | tee "$PWD0/ninja_install.log"
 
+echo "Installed VTKConfig files:"
+find /usr/local \( -name "VTKConfig.cmake" -o -name "vtk-config.cmake" \) -print
